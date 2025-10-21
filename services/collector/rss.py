@@ -54,3 +54,25 @@ def collect_rss_batch() -> int:
         except Exception as ex:
             print(f"[collector] error {u}: {ex}")
     return total
+
+def save_item(item):
+    # item.url 은 필수
+    if Article.query.filter_by(url=item.url).first():
+        return False  # 이미 존재
+
+    a = Article(
+        source=item.source,
+        title=item.title,
+        url=item.url,
+        summary_raw=item.summary,   # RSS 요약
+        content_raw=None,
+        published_at=item.published_at,
+        lang="auto"
+    )
+    db.session.add(a)
+    try:
+        db.session.commit()
+        return True
+    except Exception:
+        db.session.rollback()
+        return False

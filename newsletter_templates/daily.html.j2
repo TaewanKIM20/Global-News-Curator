@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <body style="font-family:Arial,Helvetica,sans-serif; line-height:1.5;">
+    <h2>Daily Global Brief</h2>
+    <p>{{ date_str }} 기준 주요 이슈 요약입니다.</p>
+    {% for a in articles %}
+      <hr>
+      <h3>{{ a.title }}</h3>
+      {% if a.keywords_json %}
+        <p><b>키워드:</b> {{ ", ".join(a.keywords_json) }}</p>
+      {% endif %}
+      {% if a.summary_ko %}
+        <p>{{ a.summary_ko }}</p>
+      {% elif a.summary_gen %}
+        <p>{{ a.summary_gen }}</p>
+      {% endif %}
+      <p><a href="{{ a.url }}">원문 보기</a> | {{ a.source }}</p>
+    {% endfor %}
+    <hr>
+    <p style="font-size:12px;color:#888">이 메일은 테스트 발송입니다.</p>
+  </body>
+</html>

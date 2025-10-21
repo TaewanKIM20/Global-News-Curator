@@ -5,6 +5,11 @@ from flask_migrate import Migrate
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 from apps.api.scheduler.jobs import register_jobs
+from pathlib import Path
+from dotenv import load_dotenv
+
+ROOT = Path(__file__).resolve().parents[2]  # news-pipeline/
+load_dotenv(ROOT / ".env")
 
 migrate = Migrate()
 scheduler = None  # 재시작시 중복 방지
