@@ -19,14 +19,12 @@ def _run_daily_pipeline(app):
         r2 = analyze_articles()
         current_app.logger.info(f"[pipeline] analyzed: {r2}")
         
-        # send_daily_newsletter_gmail("you@example.com")
-        
 def register_jobs(scheduler, app):
     # 매일 07:30 KST에 실행
     scheduler.add_job(
         _run_daily_pipeline,
-        #trigger=CronTrigger(hour=7, minute=30),
-        trigger=CronTrigger(minute="*/2"),
+        trigger=CronTrigger(hour=7, minute=30),
+        #trigger=CronTrigger(minute="*/2"),
         args=[app],
         id="daily_pipeline",
         replace_existing=True,

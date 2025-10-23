@@ -1,22 +1,93 @@
 <!doctype html>
 <html>
-  <body style="font-family:Arial,Helvetica,sans-serif; line-height:1.5;">
-    <h2>Daily Global Brief</h2>
-    <p>{{ date_str }} 기준 주요 이슈 요약입니다.</p>
-    {% for a in articles %}
-      <hr>
-      <h3>{{ a.title }}</h3>
-      {% if a.keywords_json %}
-        <p><b>키워드:</b> {{ ", ".join(a.keywords_json) }}</p>
+  <body style="font-family:Arial,Helvetica,sans-serif; line-height:1.6; color:#111; margin:0; padding:24px; background:#f7f7fb;">
+    <div style="max-width:720px; margin:0 auto; background:#fff; border-radius:16px; padding:28px; box-shadow:0 6px 18px rgba(14,30,37,.08);">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <h2 style="margin:0; font-size:22px;">Daily Global Brief</h2>
+        <span style="font-size:12px; color:#666;">{{ date_str }}</span>
+      </div>
+
+      {% if prefs and prefs|length > 0 %}
+        <div style="margin:8px 0 16px 0; font-size:13px; color:#555;">
+          <span style="background:#eef3ff; color:#2a5bd7; padding:4px 8px; border-radius:999px;">맞춤 카테고리: {{ ", ".join(prefs) }}</span>
+        </div>
       {% endif %}
-      {% if a.summary_ko %}
-        <p>{{ a.summary_ko }}</p>
-      {% elif a.summary_gen %}
-        <p>{{ a.summary_gen }}</p>
+
+      {% for a in articles %}
+        <div style="border:1px solid #eee; border-radius:14px; padding:16px 18px; margin-top:14px;">
+          <h3 style="margin:0 0 6px 0; font-size:18px; line-height:1.4;">
+            {{ a.title }}
+            {% if a._sent %}
+  <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0 8px 0;">
+    <!-- 배지: 라벨/폴라리티 -->
+    <div style="font-size:12px; color:#6b7280;">
+      {% set lbl = a._sent.label %}
+      {% if lbl == 'pos' %}
+        <span style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:2px 8px; border-radius:999px;">🟢 긍정 · {{ a._sent.polarity }}</span>
+      {% elif lbl == 'neg' %}
+        <span style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; padding:2px 8px; border-radius:999px;">🔴 부정 · {{ a._sent.polarity }}</span>
+      {% else %}
+        <span style="background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:2px 8px; border-radius:999px;">🟡 중립 · {{ a._sent.polarity }}</span>
       {% endif %}
-      <p><a href="{{ a.url }}">원문 보기</a> | {{ a.source }}</p>
-    {% endfor %}
-    <hr>
-    <p style="font-size:12px;color:#888">이 메일은 테스트 발송입니다.</p>
+    </div>
+  </div>
+
+  <div style="height:8px; background:#e5e7eb; border-radius:6px; overflow:hidden;">
+    {% if a._sent.pos_pct > 0 %}
+      <span style="display:inline-block; height:8px; width: {{ '%.1f' % a._sent.pos_pct }}%; background:#22c55e;"></span>
+    {% endif %}
+    {% if a._sent.neu_pct > 0 %}
+      <span style="display:inline-block; height:8px; width: {{ '%.1f' % a._sent.neu_pct }}%; background:#cbd5e1;"></span>
+    {% endif %}
+    {% if a._sent.neg_pct > 0 %}
+      <span style="display:inline-block; height:8px; width: {{ '%.1f' % a._sent.neg_pct }}%; background:#ef4444;"></span>
+    {% endif %}
+  </div>
+
+  <!-- 퍼센트 숫자 -->
+  <div style="font-size:11px; color:#6b7280; margin-top:4px;">
+    +{{ '%.1f' % a._sent.pos_pct }}% / {{ '%.1f' % a._sent.neu_pct }}% / -{{ '%.1f' % a._sent.neg_pct }}%
+  </div>
+{% endif %}
+          </h3>
+
+          {% if a.keywords_json %}
+            <div style="margin:6px 0 10px 0;">
+              {% for k in a.keywords_json[:8] %}
+                <span style="display:inline-block; font-size:11px; background:#f1f5f9; color:#334155; padding:2px 8px; border-radius:999px; margin-right:6px; margin-bottom:6px;">{{ k }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if a.summary_ko %}
+            <p style="margin:0 0 10px 0;">{{ a.summary_ko }}</p>
+          {% elif a.summary_gen %}
+            <p style="margin:0 0 10px 0;">{{ a.summary_gen }}</p>
+          {% endif %}
+
+          <div style="font-size:12px; color:#666; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <a href="{{ a.url }}" style="color:#2563eb; text-decoration:none;">원문 보기</a>
+              <span style="color:#94a3b8;"> | {{ a.source }}</span>
+              {% if a.author %}
+                <span style="color:#94a3b8;"> | {{ a.author }}</span>
+              {% endif %}
+            </div>
+            {% if a._rec_score is defined and a._rec_score > 0 %}
+              <div style="color:#64748b;">
+                추천이유:
+                {% if a._rec_matched and a._rec_matched|length > 0 %}
+                  {{ (a._rec_matched | unique) | join(", ") }}
+                {% else %}
+                  맞춤 키워드 일치
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      <p style="font-size:12px;color:#94a3b8; margin-top:18px;">이 메일은 테스트 발송입니다.</p>
+    </div>
   </body>
 </html>

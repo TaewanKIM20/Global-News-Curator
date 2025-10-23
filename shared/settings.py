@@ -9,5 +9,7 @@ class Settings:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TIMEZONE = os.getenv("TIMEZONE", "Asia/Seoul")
     FEEDS = [u.strip() for u in os.getenv("FEEDS", "").split(",") if u.strip()]
+    
+    USER_PREFERENCES = [p.strip().lower() for p in os.getenv("USER_PREFERENCES", "").split(",") if p.strip()]
 
 settings = Settings()

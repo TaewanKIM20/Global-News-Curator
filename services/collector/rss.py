@@ -6,12 +6,25 @@ from apps.api.models import Article, Feed
 from urllib.parse import urlparse
 
 def _ensure_feed(url, title=None):
+    """중복 Feed 삽입 방지 + 세션 rollback 안전 처리"""
     feed = Feed.query.filter_by(url=url).first()
-    if not feed:
+    if feed:
+        # 이미 존재 → 제목 업데이트만 필요할 경우 업데이트
+        if title and feed.title != title:
+            feed.title = title
+            db.session.commit()
+        return feed
+
+    try:
         feed = Feed(url=url, title=title)
         db.session.add(feed)
         db.session.commit()
-    return feed
+        return feed
+    except Exception as e:
+        db.session.rollback() 
+        print(f"[collector] ⚠️ feed insert error: {e}")
+        return Feed.query.filter_by(url=url).first()
+
 
 def _to_datetime(entry):
     if getattr(entry, "published_parsed", None):
@@ -50,10 +63,16 @@ def collect_rss_batch() -> int:
     total = 0
     for u in settings.FEEDS:
         try:
-            total += collect_rss_once(u)
+            added = collect_rss_once(u)
+            total += added
+            print(f"[collector] {u} → {added} new articles")
         except Exception as ex:
-            print(f"[collector] error {u}: {ex}")
+            db.session.rollback()
+            print(f"[collector] ⚠️ error {u}: {ex}")
+            continue
+    print(f"[collector] ✅ total collected: {total}")
     return total
+
 
 def save_item(item):
     # item.url 은 필수
